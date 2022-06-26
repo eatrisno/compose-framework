@@ -65,8 +65,8 @@ you need to add to your `/etc/hosts` to run `sample.local` domain
 ## Installation
 
 ```sh
-git clone -
-cd compose-workdir
+git clone git@github.com:eatrisno/compose-framework.git
+cd compose-framework
 
 ./start.sh
 ```
@@ -163,7 +163,7 @@ cd compose-workdir
             networks:
                 - development
                 - production
-                - staging                   #<---- add this alias network
+                - staging                      #<---- add this alias network
 
     networks:
     production:
@@ -172,6 +172,18 @@ cd compose-workdir
         name: "development_network"             #<---- network name
     staging:
         name: "staging_network"
+    ```
+    
+    ## SSL support
+    add your certificate to `certs` folder with domain format, for example your domain is : `mywebsite.com`, 
+    your cert file name is `mywebsite.com.cert`
+    your key file name is `mywebsite.com.key`
+    
+    ```sh
+    loadbalancer/
+        certs/
+            - mywebsite.com.cert
+            - mywebsite.com.key
     ```
 
 - #### Step 7
