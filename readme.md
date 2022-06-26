@@ -7,16 +7,16 @@ This pipeline project template is created to support development docker faster.
 ## Concept
 
 ```sh
-                       reverse proxy (80,443)
+                      loadbalancer (80,443)
                                 |
         --------------------------------------------------
         |                                                |
- example_network                                 example2_network
+development_network                            production_network
         |                                                |
         |                                  ---------------------------
         |                                 |                          |
-    sample (80)                     sample1 (80)                 sample2 (80)
-  (sample.local)                   (sample1.local)              (sample2.local)
+    myapp (80)                      myfront (80)                 myback (80)
+ (dev.myapp.com)                   (myfront.com)                (myback.com)
 ```
 
 ## What you need to start this project
@@ -41,21 +41,16 @@ This pipeline project template is created to support development docker faster.
 ## Folder Map
 
 ```sh
-    - example                           <-- project / app folder
-        - .env                          <-- env file for docker-compose
-        - docker-compose.yaml           <-- docker-compose config
-    - example2
-        - .env
+    - services/
+        - development/                  <-- project / app folder
+            - .env                      <-- env file for docker-compose
+            - docker-compose.yaml       <-- docker-compose config
+        - production/
+            - .env
+            - docker-compose.yaml
+    - loadbalancer/
         - docker-compose.yaml
-    - loadbalancer
-        - docker-compose.yaml
-        - conf.d
-            - default.conf              <-- by default redirect 80 to 443
-            - default-ssl.conf.disabled <-- ssl (443) domain example
-            - sample-local.conf         <-- sample.local domain
-            - sample1-local.conf        <-- sample1.local domain
-            - sample2-local.conf        <-- sample2.local domain
-        - reload.sh                     <------|
+        - certs/                    
     - start.sh                          <-- ✨Magic ✨
 ```
 
@@ -64,23 +59,16 @@ This pipeline project template is created to support development docker faster.
 you need to add to your `/etc/hosts` to run `sample.local` domain
 
 ```sh
-127.0.0.1 sample.local sample1.local sample2.local
+127.0.0.1 dev.myapp.com myfront.com myback.com
 ```
 
 ## Installation
 
 ```sh
-git clone git@bitbucket.org:invstr-devops/compose-workdir.git
+git clone -
 cd compose-workdir
 
 ./start.sh
-```
-
-## To reload loadbalancer
-
-```sh
-cd loadbalancer
-./reload.sh
 ```
 
 ## What you need to do when
@@ -90,9 +78,9 @@ cd loadbalancer
 - #### Step 1
 
     ```sh
-    cd compose-workdir
-    mkdir develop
-    cd develop
+    cd compose-framework
+    mkdir staging
+    cd staging
     ```
 
 - #### Step 2
@@ -109,18 +97,19 @@ cd loadbalancer
     version: '3.7'
 
     services:
-      backend-api:                          #<-- app name, for e.g: backend-api
-        restart: always                     #<-- keep start docker when down / error
-        image: "${BACKEND_API_REGISTERY}"   #<-- image registery variable loaded from .env file
-        env_file:
-         - "${BACKEND_API_ENV}"             #<-- env variable loaded from .env file to system
+      backend-api:                                  #<-- app name, for e.g: backend-api
+        restart: always                              #<-- keep start docker when down / error
+        image: "${BACKEND_API_REGISTERY}"            #<-- image registery variable loaded from .env file
         networks:
-          develop:                          #<-- network alias ---------------------------------|
-            aliases:                        #                                                   |
-            - "backend-api.develop"         #<-- app domain alias (http://backend-api.develop)  |
-    networks:                               #                                                   |
-      develop:                              #<-- network alias for attach to service -----------|
-        name: "develop_network"             #<-- your network name
+         - staging                                   #<-- network alias ---------------------------------|
+        environment:                                                                                     |
+          - VIRTUAL_HOST="api.mycompany.com"         #<-- app domain alias (http://api.mycompany.com)    |
+          - VIRTUAL_PORT=80
+        expose:
+          - 80
+    networks:                                        #                                                   |
+      staging:                                       #<-- network alias for attach to service -----------|
+        name: "staging_network"                      #<-- your network name
     ```
 
 - #### Step 3
@@ -135,7 +124,6 @@ cd loadbalancer
 
     ```sh
     BACKEND_API_REGISTERY=nginx:alpine
-    BACKEND_API_ENV=/data/config/develop/backend-api.env
     ```
 
 - #### Step 4
@@ -152,49 +140,7 @@ cd loadbalancer
     Creating network "develop_network" with the default driver
     Creating develop_backend-api_1 ... done
     ```
-
-- #### Step 5
-
-    you need to add nginx config e.g: `loadbalancer/conf.d/backend-api.conf`
-
-    ```sh
-    cd ../loadbalancer
-    nano conf.d/backend-api.conf
-    ```
-
-    for http:
-
-    ```nginx
-    server {
-      listen 80;
-      server_name backend-api.develop.local; 
     
-      location / {
-        proxy_pass http://backend-api.develop;
-      }
-    
-      error_log  /var/log/nginx/backend-api.develop.error.log error;
-    }
-    ```
-
-    for https :
-
-    you need to edit `certs/server.key` and `certs/server.crt` with valid domain certificate.
-
-    ```nginx
-    server {
-      listen 443 ssl;
-      server_name backend-api.develop.local; 
-    
-      include /etc/nginx/conf.d/ssl.include;
-    
-      location / {
-        proxy_pass http://backend-api.develop;
-      }
-    
-      error_log  /var/log/nginx/backend-api.develop.error.log error;
-    }
-    ```
 
 - #### Step 6
 
@@ -204,24 +150,28 @@ cd loadbalancer
     version: '3.7'
 
     services:
-        nginx:
+        nginx-proxy:
             restart: always
-            image: nginx:alpine
+            image: nginxproxy/nginx-proxy
             volumes:
-                - "./conf.d:/etc/nginx/conf.d"
                 - "./certs:/etc/nginx/certs"
             ports:
                 - 80:80
                 - 443:443
+            volumes:
+                - /var/run/docker.sock:/tmp/docker.sock:ro
             networks:
-                - sample
-                - develop                   #<---- add this alias network
+                - development
+                - production
+                - staging                   #<---- add this alias network
 
     networks:
-    sample:
-        name: "sample_network"
-    develop:                                #<---- alias network
-        name: "develop_network"             #<---- network name
+    production:
+        name: "production_network"
+    development:                                #<---- alias network
+        name: "development_network"             #<---- network name
+    staging:
+        name: "staging_network"
     ```
 
 - #### Step 7
@@ -229,14 +179,14 @@ cd loadbalancer
     restart your nginx loadbalancer
 
     ```sh
-    ./reload.sh
+    docker-compose up -d
     ```
 
     (`optional`) add to your local `/etc/hosts`:
 
     ```sh
     sudo nano /etc/hosts
-    echo "127.0.0.1 backend-api.develop.local"
+    echo "127.0.0.1 api.mycompany.com"
     ```
 
 ## License
