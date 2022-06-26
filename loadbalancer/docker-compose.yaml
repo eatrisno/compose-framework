@@ -1,0 +1,18 @@
+version: '3.7'
+
+services:
+    nginx:
+        restart: always
+        image: nginx:alpine
+        volumes:
+            - "./conf.d:/etc/nginx/conf.d"
+            - "./certs:/etc/nginx/certs"
+        ports:
+            - 80:80
+            - 443:443
+        networks:
+            - sample
+
+networks:
+   sample:
+    name: "sample_network"

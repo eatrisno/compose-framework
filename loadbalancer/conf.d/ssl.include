@@ -1,0 +1,4 @@
+server_tokens off;
+
+ssl_certificate       /etc/nginx/certs/server.cert;
+ssl_certificate_key   /etc/nginx/certs/server.key;

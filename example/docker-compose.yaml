@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  sample:
+    restart: always
+    image: "${NGINX_REGISTERY}"
+#    env_file:
+#      - /data/conf/backend-api/env-dev
+    networks:
+      sample:
+        aliases:
+        - sample
+
+networks:
+  sample:
+    name: "sample_network"
