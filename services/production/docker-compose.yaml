@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  myback:
+    restart: always
+    image: "${MYBACK_REGISTERY}"
+#    env_file:
+#     - /data/conf/develop/sample1.env
+    environment:
+      - VIRTUAL_HOST=${MYBACK_HOST}
+      - VIRTUAL_PORT=80
+    expose:
+      - 80
+    networks:
+      - production
+  myfront:
+    restart: always
+    image: "${MYFRONT_REGISTERY}"
+    environment:
+      - VIRTUAL_HOST=${MYFRONT_HOST}
+      - VIRTUAL_PORT=80
+    expose:
+      - 80
+    networks:
+      - production
+
+networks:
+  production:
+    name: "production_network"

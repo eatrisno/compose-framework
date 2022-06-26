@@ -9,7 +9,9 @@ else
 fi
 
 services=(
- "example/sample"
+ "development/myapp"
+ "production/myfront"
+ "production/myback"
 )
 
 echo "=== Services"
@@ -17,7 +19,7 @@ for service in "${services[@]}"
 do
 	environment=$(echo ${service} | cut -d/ -f 1)
 	service_name=$(echo ${service} | cut -d/ -f 2)
-	cd "${curr}/${environment}"
+	cd "${curr}/services/${environment}"
 	docker-compose up -d ${service_name}
 done
 

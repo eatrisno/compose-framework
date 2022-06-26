@@ -1,18 +1,18 @@
 version: '3.7'
 
 services:
-    nginx:
-        restart: always
-        image: nginx:alpine
-        volumes:
-            - "./conf.d:/etc/nginx/conf.d"
-            - "./certs:/etc/nginx/certs"
-        ports:
-            - 80:80
-            - 443:443
-        networks:
-            - sample
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - development
+      - production
 
 networks:
-   sample:
-    name: "sample_network"
+   development:
+    name: "development_network"
+   production:
+    name: "production_network"
