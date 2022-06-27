@@ -98,12 +98,12 @@ cd compose-framework
     version: '3.7'
 
     services:
-      backend-api:                                  #<-- app name, for e.g: backend-api
+      backend-api:                                   #<-- app name, for e.g: backend-api
         restart: always                              #<-- keep start docker when down / error
         image: "${BACKEND_API_REGISTERY}"            #<-- image registery variable loaded from .env file
-        networks:
+        networks:                                    #
          - staging                                   #<-- network alias ---------------------------------|
-        environment:                                                                                     |
+        environment:                                 #                                                   |
           - VIRTUAL_HOST="api.mycompany.com"         #<-- app domain alias (http://api.mycompany.com)    |
           - VIRTUAL_PORT=80
         expose:
