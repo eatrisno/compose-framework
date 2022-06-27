@@ -50,7 +50,8 @@ development_network                            production_network
             - docker-compose.yaml
     - loadbalancer/
         - docker-compose.yaml
-        - certs/                    
+        - certs/
+        - nginx.tmpl                    
     - start.sh                          <-- ✨Magic ✨
 ```
 
@@ -73,7 +74,7 @@ cd compose-framework
 
 ## What you need to do when
 
-### how to add new environment (develop)
+### how to add new environment (staging)
 
 - #### Step 1
 
@@ -140,7 +141,6 @@ cd compose-framework
     Creating network "develop_network" with the default driver
     Creating develop_backend-api_1 ... done
     ```
-    
 
 - #### Step 6
 
@@ -152,7 +152,7 @@ cd compose-framework
     services:
         nginx-proxy:
             restart: always
-            image: nginxproxy/nginx-proxy
+            image: nginxproxy/nginx-proxy:alpine
             volumes:
                 - "./certs:/etc/nginx/certs"
             ports:
@@ -173,12 +173,13 @@ cd compose-framework
     staging:
         name: "staging_network"
     ```
-    
-    ## SSL support
-    add your certificate to `certs` folder with domain format, for example your domain is : `mywebsite.com`, 
+
+    ### SSL support
+
+    add your certificate to `certs` folder with domain format, for example your domain is : `mywebsite.com`,
     your cert file name is `mywebsite.com.cert`
     your key file name is `mywebsite.com.key`
-    
+
     ```sh
     loadbalancer/
         certs/
