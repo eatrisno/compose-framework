@@ -66,7 +66,7 @@ you need to add to your `/etc/hosts` to run `sample.local` domain
 ## Installation
 
 ```sh
-git clone git@github.com:eatrisno/compose-framework.git
+git clone https://github.com/eatrisno/compose-framework.git
 cd compose-framework
 
 ./start.sh
