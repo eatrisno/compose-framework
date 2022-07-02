@@ -2,7 +2,7 @@
 
 ###### _Try not to become a man of success, but rather try to become a man of value._
 
-This pipeline project template is created to support development docker faster.
+This pipeline project template is created to support containerization faster.
 
 ## Concept
 
